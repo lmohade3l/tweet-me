@@ -1,0 +1,60 @@
+{% extends "./base.html" %}
+
+{% block content %}
+
+<div class="row text-center">
+    <div class="col">
+        <h4>welcome to tweetme</h4>
+    </div>
+</div>
+
+
+<div class="row" id="tweets" >
+    Loading...
+</div>
+
+<script>
+    const tweets_element = document.getElementById('tweets')
+    // tweets_element.innerHTML = 'loading...'
+
+    const xhr = new XMLHttpRequest()
+    const method = 'GET'
+    const url = '/tweets'
+    const response_type = 'json'
+
+
+    function handle_like (tweet_id , cur_count) {
+        console.log(tweet_id , cur_count)
+    }
+
+    function like_btn(tweet) {
+        return "<button class='btn btn-primary btn-sm' onClick=handle_like("+tweet.id +"," +tweet.likes+")>"+tweet.likes+" Likes</button>"
+    }
+
+    function format_tweet_element(tweet) {
+        let cur_item = `<div class='col12 border-top py-2 mb-4' id=${tweet.id}>
+                            <p>${tweet.content}</p>
+                            <div class='btn-group'>${like_btn(tweet)}</div>
+                        </div>`
+        return cur_item
+    }
+
+    xhr.responseType = response_type
+    xhr.open(method , url)
+    xhr.onload = function() {
+        const server_response = xhr.response
+        const listed_items = server_response.response
+        
+        console.log(listed_items)
+        
+        let item = '';
+        for(let i=0 ; i<listed_items.length; i++) {
+            let tweet_obj = listed_items[i]
+            cur_item = format_tweet_element(tweet_obj)
+            item += cur_item;
+        }
+        tweets_element.innerHTML = item;
+    }
+    xhr.send()
+</script>
+{% endblock content %}
