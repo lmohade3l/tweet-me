@@ -8,20 +8,72 @@
     </div>
 </div>
 
+<div class="row mb-3" >
+    <div class="col-md-4 mx-auto col-10">
+        <form class="form" id="tweet-create-form" method="POST" action="/create-tweet">
+                {% csrf_token %}
+            <input type="hidden" value="/" name="next" />
+            <textarea class="form-control" name="content" placeholder="Your tweet..."></textarea>
+            <button type="submit" class="btn btn-primary">Tweet</button>
+        </form>
+    </div>
+</div>
 
 <div class="row" id="tweets" >
     Loading...
 </div>
 
 <script>
+    function handle_tweet_create_form_submit(e) {
+        e.preventDefault();
+        const my_form = e.target;
+        const my_form_data = new FormData(my_form);
+        const url = my_form.getAttribute('action');
+        const method = my_form.getAttribute('method');
+
+        const xhr = new XMLHttpRequest()
+        xhr.open(method , url);
+        xhr.onload = function() {
+            const server_response = xhr.response
+            const tweets_element = document.getElementById('tweets')
+            load_tweets(tweets_element)
+        }
+        xhr.send(my_form_data)
+            
+
+    }
+    const tweet_create_element = document.getElementById('tweet-create-form')
+    tweet_create_element.addEventListener('submit' , handle_tweet_create_form_submit)
+
     const tweets_element = document.getElementById('tweets')
     // tweets_element.innerHTML = 'loading...'
 
-    const xhr = new XMLHttpRequest()
-    const method = 'GET'
-    const url = '/tweets'
-    const response_type = 'json'
+    const load_tweets = function(tweets_element) {
+        const xhr = new XMLHttpRequest()
+        const method = 'GET'
+        const url = '/tweets'
+        const response_type = 'json'
 
+        xhr.responseType = response_type
+        xhr.open(method , url)
+        xhr.onload = function() {
+            const server_response = xhr.response
+            const listed_items = server_response.response
+            
+            console.log(listed_items)
+            
+            let item = '';
+            for(let i=0 ; i<listed_items.length; i++) {
+                let tweet_obj = listed_items[i]
+                cur_item = format_tweet_element(tweet_obj)
+                item += cur_item;
+            }
+            tweets_element.innerHTML = item;
+        }
+        xhr.send()
+    }
+
+    load_tweets(tweets_element);
 
     function handle_like (tweet_id , cur_count) {
         console.log(tweet_id , cur_count)
@@ -39,22 +91,6 @@
         return cur_item
     }
 
-    xhr.responseType = response_type
-    xhr.open(method , url)
-    xhr.onload = function() {
-        const server_response = xhr.response
-        const listed_items = server_response.response
-        
-        console.log(listed_items)
-        
-        let item = '';
-        for(let i=0 ; i<listed_items.length; i++) {
-            let tweet_obj = listed_items[i]
-            cur_item = format_tweet_element(tweet_obj)
-            item += cur_item;
-        }
-        tweets_element.innerHTML = item;
-    }
-    xhr.send()
+    
 </script>
 {% endblock content %}
