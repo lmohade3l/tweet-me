@@ -12,8 +12,11 @@
     <div class="col-md-4 mx-auto col-10">
         <form class="form" id="tweet-create-form" method="POST" action="/create-tweet">
                 {% csrf_token %}
+                <div class="d-none alert alert-danger" id="tweet-create-form-error">
+
+                </div>
             <input type="hidden" value="/" name="next" />
-            <textarea class="form-control" name="content" placeholder="Your tweet..."></textarea>
+            <textarea required="required" class="form-control" name="content" placeholder="Your tweet..."></textarea>
             <button type="submit" class="btn btn-primary">Tweet</button>
         </form>
     </div>
@@ -24,6 +27,19 @@
 </div>
 
 <script>
+
+    function handle_tweet_form_error(msg , display) {
+        let my_error_div = document.getElementById('tweet-create-form-error')
+        if (display === true) {
+            //show error
+            my_error_div.setAttribute('class' , 'd-block alert alert-danger');
+            my_error_div.innerHTML = msg;
+        } else {
+            my_error_div.setAttribute('class' , 'd-none alert alert-danger');
+        }
+    }
+
+
     function handle_tweet_create_form_submit(e) {
         e.preventDefault();
         const my_form = e.target;
@@ -33,19 +49,43 @@
 
         const xhr = new XMLHttpRequest()
         xhr.open(method , url);
+        xhr.setRequestHeader('HTTP_REQUESTED_WITH' , 'XMLHttpRequest')
+        xhr.setRequestHeader('X-Requested-With' , 'XMLHttpRequest')
         xhr.onload = function() {
-            const server_response = xhr.response
-            const tweets_element = document.getElementById('tweets')
-            load_tweets(tweets_element)
+            if(xhr.status === 201) {
+                handle_tweet_form_error('' , false)
+                const new_tweet = JSON.parse( xhr.response)
+                const new_tweet_element = format_tweet_element(new_tweet)
+                
+                const original_html = tweets_container_element.innerHTML;
+                tweets_container_element.innerHTML = new_tweet_element + original_html;
+
+                my_form.reset();
+            } else if (xhr.status === 400) {
+                const errorJSon = xhr.response;
+                const content_error = errorJSon.content;
+                
+                let content_error_msg;
+                if (content_error) {
+                    content_error_msg = content_error[0]
+                    if(content_error_msg) handle_tweet_form_error(content_error_msg , true)
+                    else alert('an error occured')
+
+                } else alert('another error')
+                
+            } else if (xhr.status === 500) alert('there was a server error')
+
+        }
+        xhr.onerror = function() {
+            alert('an error accured');
         }
         xhr.send(my_form_data)
-            
-
     }
+
     const tweet_create_element = document.getElementById('tweet-create-form')
     tweet_create_element.addEventListener('submit' , handle_tweet_create_form_submit)
 
-    const tweets_element = document.getElementById('tweets')
+    const tweets_container_element = document.getElementById('tweets')
     // tweets_element.innerHTML = 'loading...'
 
     const load_tweets = function(tweets_element) {
@@ -73,7 +113,7 @@
         xhr.send()
     }
 
-    load_tweets(tweets_element);
+    load_tweets(tweets_container_element);
 
     function handle_like (tweet_id , cur_count) {
         console.log(tweet_id , cur_count)
