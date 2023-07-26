@@ -1,9 +1,10 @@
 1. Tweets
-    -> creating
-        -> text
-        -> image -> media storage server
-    -> deleting
-    -> retweeting
+    -> user permission
+        -> creating
+            -> text
+            -> image -> media storage server
+        -> deleting
+        -> retweeting
 
 
 2. Users

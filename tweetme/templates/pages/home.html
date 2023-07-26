@@ -64,7 +64,7 @@
             } else if (xhr.status === 400) {
                 const errorJSon = xhr.response;
                 const content_error = errorJSon.content;
-                
+
                 let content_error_msg;
                 if (content_error) {
                     content_error_msg = content_error[0]
@@ -73,7 +73,11 @@
 
                 } else alert('another error')
                 
-            } else if (xhr.status === 500) alert('there was a server error')
+            } else if (xhr.status === 401) {
+                alert('login first!') 
+                window.location.href = '/login'
+            }
+            else if (xhr.status === 500) alert('there was a server error')
 
         }
         xhr.onerror = function() {
@@ -98,7 +102,7 @@
         xhr.open(method , url)
         xhr.onload = function() {
             const server_response = xhr.response
-            const listed_items = server_response.response
+            const listed_items = server_response
             
             console.log(listed_items)
             
